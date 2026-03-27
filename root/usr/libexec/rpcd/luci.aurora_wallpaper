@@ -13,6 +13,7 @@ WEB_PIC_SRC="$(uci -q get aurora.@global[0].online_wallpaper || echo 'bing')"
 # EXACT_RESO is used for exact resolution by default, if not use 'atleast' instead of 'resolutions'
 API_KEY="$(uci -q get aurora.@global[0].use_api_key)"
 EXACT_RESO="$(uci -q get aurora.@global[0].use_exact_resolution || echo '1')"
+EXTRA_PARAMS="$(uci -q get aurora.@global[0].extra_params)"
 
 CACHE="/var/run/aurora_${WEB_PIC_SRC}.url"
 WRLOCK="/var/lock/aurora_${WEB_PIC_SRC}.lock"
@@ -60,8 +61,9 @@ fetch_pic_url() {
 		local use_reso="resolutions"
 		[ "$EXACT_RESO" -eq "1" ] || use_reso="atleast"
 		[ -z "$API_KEY" ] || API_KEY="apikey=$API_KEY&"
+                [ -z "$EXTRA_PARAMS" ] || EXTRA_PARAMS="&$EXTRA_PARAMS"
 		wget -T3 -qO- \
-			"https://wallhaven.cc/api/v1/search?${API_KEY}q=id%3A${tag_id}&${use_reso}=1920x1080&sorting=random&categories=110&purity=111&ratios=16x9&page=1&seed=[a-zA-Z0-9]{6}" |
+			"https://wallhaven.cc/api/v1/search?${API_KEY}q=id%3A${tag_id}&${use_reso}=1920x1080&sorting=random${EXTRA_PARAMS}" |
 			jsonfilter -qe '@.data[0].path'
 		;;
 	esac
